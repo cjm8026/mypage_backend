@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fproject-backend
+  namespace: default
+  labels:
+    app: fproject-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fproject-backend
+  template:
+    metadata:
+      labels:
+        app: fproject-backend
+    spec:
+      containers:
+      - name: backend
+        image: 324547056370.dkr.ecr.us-east-1.amazonaws.com/fproject-dev-api:v9
+        ports:
+        - containerPort: 3001
+          name: http
+        env:
+        # ConfigMap values
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: DB_NAME
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: DB_USER
+        - name: DB_MAX_CONNECTIONS
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: DB_MAX_CONNECTIONS
+        - name: DB_IDLE_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: DB_IDLE_TIMEOUT
+        - name: DB_CONNECTION_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: DB_CONNECTION_TIMEOUT
+        - name: AWS_REGION
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: AWS_REGION
+        - name: AWS_USER_POOL_ID
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: AWS_USER_POOL_ID
+        - name: AWS_CLIENT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: AWS_CLIENT_ID
+        - name: API_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: API_PORT
+        - name: FRONTEND_URL
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: FRONTEND_URL
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: fproject-backend-config
+              key: NODE_ENV
+        # Secret values
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: fproject-backend-secret
+              key: DB_PASSWORD
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: fproject-backend-secret
+              key: GOOGLE_CLIENT_SECRET
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      restartPolicy: Always
